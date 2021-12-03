@@ -1,52 +1,5 @@
-/*
- * File: mpi_merge_sort.c
- * Purpose: Implement parallel merge sort on a distributed list
- * of randomly generated ints
- * Input:
- * n: number of elements per process
- * Output:
- * local_array: elements of distributed list after sorting
- *
- * Compile: mpicc -g -Wall -o mpi_merge_sort mpi_merge_sort.c
- * Run:
- * mpiexec -n <p> ./mpi_merge_sort
- * - p: the number of processes
- *
- * Notes:
- * 1. Uses tree-structured communication to gather the distributed
- * lists onto process 0.
- * 2. No attempt is made to be efficient with storage.
- * 3. Assumes p is a power of 2
- */
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <errno.h>  // to check correctness of input
-#include <limits.h> // for INT_MIN and INT_MAX
-#include <mpi.h>
+#include "mergeMPI.h"
 
-#define MPITYPE MPI_INT
-typedef int DATATYPE; // char, ints, unsigned, floats, doubles supported
-
-int check_int_input(const char* par);
-
-void QuickSort(DATATYPE a[], int lo, int hi);
-void swap(DATATYPE* a,DATATYPE* b);
-
-/* Local functions */
-double init(DATATYPE *local_array, int local_size, int n_rank, int rank, char* filename, int version, MPI_Comm com);
-double init_local_sort(DATATYPE* local_array, int local_size, int n_rank, int rank, MPI_Comm com); 
-
-
-int Compare(const void * a_p, const void * b_p);
-void Print_list(DATATYPE local_array[], int n);
-void Merge(DATATYPE local_array[], DATATYPE B[], DATATYPE C[], int size);
-
-/* Functions involving communication */
-void Merge_sort(DATATYPE local_array[], int local_n, int my_rank, int p, MPI_Comm comm);
-void Print_global_list(DATATYPE local_array[], int local_n, int my_rank, int p, MPI_Comm comm);
-
-/*-------------------------------------------------------------------*/
 int main(int argc, char * argv[]) {
 
   int rank, n_rank;
@@ -83,8 +36,8 @@ int main(int argc, char * argv[]) {
 
   init_local_time_mean = init_local_sort(local_array, local_size, n_rank, rank, comm);
 
-  if(testMode && rank == 0)
-  if (rank == 0)
+
+  if (testMode && rank == 0)
     printf("init local sort time taken: %.3lf\n", init_local_time_mean);
 
   if(testMode)
@@ -93,22 +46,38 @@ int main(int argc, char * argv[]) {
   Merge_sort(local_array, local_size, rank, n_rank, comm);
 
   if(testMode && rank == 0)
-    Print_list(local_array, n_rank * local_size);
-
-  // printf(); // output
+    Print_list(local_array, size);
 
   free(local_array);
   MPI_Finalize();
   return 0;
-} /* main */
+}
+
+/**
+ * @brief Read the input data to be sorted from file and stores the result in memory.
+ * The time taken to read the file and fill the memory is returned;
+ * 
+ * @param local_array the array to be filled with data
+ * @param local_size  the size of the array
+ * @param n_rank the size of the communicator
+ * @param rank the rank of node in the communicator
+ * @param filename name of the file to be read 
+ * @param version changes the read mode
+ * @param com the MPI communicator involved 
+ * @return double the time spent to read the file and store the data in memory
+ */
 
 double init(DATATYPE *local_array, int local_size, int n_rank, int rank, char* filename, int version, MPI_Comm com) {
 
   MPI_Status status;
   MPI_File fh;
 
-  double start = MPI_Wtime();
-  if (version == 1){
+  double start,end,sum;
+
+  //start counting time
+  START_T(start)
+
+  if (version == 1){ // many collective, contigous requests
     MPI_Offset offset = rank * local_size * sizeof(DATATYPE);
     MPI_File_open(com, filename, MPI_MODE_RDONLY, MPI_INFO_NULL, &fh);
     for (int i=0; i<n_rank; i++){
@@ -117,7 +86,7 @@ double init(DATATYPE *local_array, int local_size, int n_rank, int rank, char* f
     }
     MPI_File_close(&fh);
   }
-  else if (version == 2){
+  else if (version == 2){ // single collective, noncontigous request
     MPI_Datatype array_integer_type;
     MPI_Type_contiguous(local_size, MPITYPE , &array_integer_type);
     MPI_Type_commit(&array_integer_type);
@@ -129,36 +98,22 @@ double init(DATATYPE *local_array, int local_size, int n_rank, int rank, char* f
     MPI_File_read_all(fh, local_array, local_size, MPITYPE, &status);
     MPI_File_close(&fh);
   }
-  double end = MPI_Wtime() - start;
+  //stop the timer
+  END_T(end,start,com,sum)
 
-  // printf("%d# local_time: %.3lf\n",rank, end);
-  MPI_Barrier(com);
-
-  double sum = 0;
-  MPI_Reduce(&end, &sum, 1, MPI_DOUBLE, MPI_SUM, 0, com);
-
-  // printf("In %d#\n",rank);
-  // for (int i=0; i<local_size; i++)
-  //   printf("%d ", local_array[i]);
-  // printf("\n");
-
-  return sum/n_rank;
+  return sum/n_rank; //return the mean of the time spent in this function by each node in the communicator
 }
 
 double init_local_sort(DATATYPE* local_array, int local_size, int n_rank, int rank, MPI_Comm com){
   
-  double start = MPI_Wtime();
+  double start_time,end_time,sum;
+
+  START_T(start_time)
     //qsort(local_array, local_size, sizeof(local_array[0]), Compare);
-    QuickSort(local_array,0,local_size-1);
-  double end = MPI_Wtime() - start;
+    quickSort(local_array,0,local_size-1); //sort the local array 
+  END_T(end_time,start_time,com,sum)
 
-  // printf("%d# %.3lf\n",rank, end);
-  MPI_Barrier(com);
-
-  double sum = 0;
-  MPI_Reduce(&end, &sum, 1, MPI_DOUBLE, MPI_SUM, 0, com);
-
-  return sum / n_rank;
+  return sum / n_rank; 
 }
 
 /*-------------------------------------------------------------------
@@ -169,8 +124,8 @@ double init_local_sort(DATATYPE* local_array, int local_size, int n_rank, int ra
  * local_n: the number of elements in each local list
  * my_rank, p, comm: the usual
  */
-void Print_global_list(DATATYPE local_array[], int local_n, int my_rank, int p, MPI_Comm comm) {
-  DATATYPE * global_A = NULL;
+void Print_global_list(DATATYPE* local_array, int local_n, int my_rank, int p, MPI_Comm comm) {
+  DATATYPE* global_A = NULL;
 
   if (my_rank == 0) {
     global_A = malloc(p * local_n * sizeof(DATATYPE));
@@ -184,13 +139,13 @@ void Print_global_list(DATATYPE local_array[], int local_n, int my_rank, int p, 
 
 /*-------------------------------------------------------------------
  * Function: Compare
- * Purpose: Compare 2 ints, return -1, 0, or 1, respectively, when
+ * Purpose: Compare 2 DATATYPES, return -1, 0, or 1, respectively, when
  * the first int is less than, equal, or greater than
- * the second. Used by qsort.
+ * the second. Used by qsort
  */
-int Compare(const void * a_p, const void * b_p) {
-  int a = * ((DATATYPE * ) a_p);
-  int b = * ((DATATYPE * ) b_p);
+int compare(const void* a_p, const void* b_p) {
+  int a = * ((DATATYPE* ) a_p);
+  int b = * ((DATATYPE* ) b_p);
 
   if (a < b)
     return -1;
@@ -226,7 +181,7 @@ void Print_list(DATATYPE local_array[], int n) {
  * In/out arg: local_array: each process's local sorted list on input
  * global sorted list on process 0 on output
  */
-void Merge_sort(DATATYPE local_array[], int local_n, int my_rank, int p, MPI_Comm comm) {
+void Merge_sort(DATATYPE* local_array, int local_n, int my_rank, int p, MPI_Comm comm) {
   int partner, done = 0, size = local_n;
   unsigned bitmask = 1;
   DATATYPE * B, * C;
@@ -261,7 +216,7 @@ void Merge_sort(DATATYPE local_array[], int local_n, int my_rank, int p, MPI_Com
  * In/out arg: local_array: first input array, output array
  * Scratch: C: temporary storage for merged lists
  */
-void Merge(DATATYPE local_array[], DATATYPE B[], DATATYPE C[], int size) {
+void Merge(DATATYPE* local_array, DATATYPE* B, DATATYPE* C, int size) {
   int ai, bi, ci;
 
   ai = bi = ci = 0;
@@ -289,9 +244,8 @@ void Merge(DATATYPE local_array[], DATATYPE B[], DATATYPE C[], int size) {
 
 int check_int_input(const char* par){
     /**
-     * @brief 
      * from https://stackoverflow.com/questions/9748393/how-can-i-get-argv-as-int
-     *  answer of https://stackoverflow.com/users/1201863/luc
+     * answer of https://stackoverflow.com/users/1201863/luc
      */
     char* p;
     errno = 0; /*not 'int errno', because the '#include' already defined it*/
@@ -314,31 +268,26 @@ int check_int_input(const char* par){
 
 
 /*QuickSort using median of low, middle, high, values as pivot*/
-void QuickSort(DATATYPE a[], int lo, int hi) {
+void quickSort(DATATYPE a[], int lo, int hi) {
     int i = lo, j = (lo + hi)/2, k = hi;
     int pivot;
-    if (a[k] < a[i])            // median of 3
-        swap(&a[k], &a[i]);
-    if (a[j] < a[i])
-        swap(&a[j], &a[i]);
-    if (a[k] < a[j])
-        swap(&a[k], &a[j]);
+    if (a[k] < a[i]) swap(&a[k], &a[i]);
+    if (a[j] < a[i]) swap(&a[j], &a[i]);
+    if (a[k] < a[j]) swap(&a[k], &a[j]);
     pivot = a[j];
     while (i <= k) {            // partition
-        while (a[i] < pivot)
-            i++;
-        while (a[k] > pivot)
-            k--;
+        while (a[i] < pivot) i++;
+        while (a[k] > pivot) k--;
         if (i <= k) {
             swap(&a[i], &a[k]);
             i++;
             k--;
         }
     }
-    if (lo < k)                 // recurse
-        QuickSort(a, lo, k);
+    if (lo < k)   // recurse in the lower half
+        quickSort(a, lo, k);
     if (i < hi)
-        QuickSort(a, i, hi);
+        quickSort(a, i, hi); // recurse in the higher half
 }
 
 void swap(DATATYPE* a,DATATYPE* b){
