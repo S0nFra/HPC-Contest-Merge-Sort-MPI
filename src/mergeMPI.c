@@ -50,7 +50,8 @@ int main(int argc, char * argv[]) {
 
   free(local_array);
   MPI_Finalize();
-  return 0;
+
+  return EXIT_SUCCESS;
 }
 
 /**
@@ -116,86 +117,70 @@ double init_local_sort(DATATYPE* local_array, int local_size, int n_rank, int ra
   return sum / n_rank; 
 }
 
-/*-------------------------------------------------------------------
- * Function: Print_global_list
- * Purpose: Print the contents of a distributed list
- * Input args:
- * local_array: the local list
- * local_n: the number of elements in each local list
- * my_rank, p, comm: the usual
+/**
+ * @brief Print the contents of a distributed list 
+ * 
+ * @param local_array the local list
+ * @param local_n the number of elements in the list
+ * @param rank rank of the process in the communicator
+ * @param n_rank size of communicator
+ * @param comm the communicator 
  */
-void Print_global_list(DATATYPE* local_array, int local_n, int my_rank, int p, MPI_Comm comm) {
+void Print_global_list(DATATYPE* local_array, int local_n, int rank, int n_rank, MPI_Comm comm) {
   DATATYPE* global_A = NULL;
 
-  if (my_rank == 0) {
-    global_A = malloc(p * local_n * sizeof(DATATYPE));
+  if (rank == 0) {
+    global_A = malloc(n_rank * local_n * sizeof(DATATYPE));
     MPI_Gather(local_array, local_n, MPITYPE, global_A, local_n, MPITYPE, 0, comm);
-    Print_list(global_A, p * local_n);
+    Print_list(global_A, n_rank * local_n);
     free(global_A);
   } else {
     MPI_Gather(local_array, local_n, MPITYPE, global_A, local_n, MPITYPE, 0, comm);
   }
-} /* Print_global_list */
+}
 
-/*-------------------------------------------------------------------
- * Function: Compare
- * Purpose: Compare 2 DATATYPES, return -1, 0, or 1, respectively, when
- * the first int is less than, equal, or greater than
- * the second. Used by qsort
- */
-int compare(const void* a_p, const void* b_p) {
-  int a = * ((DATATYPE* ) a_p);
-  int b = * ((DATATYPE* ) b_p);
-
-  if (a < b)
-    return -1;
-  else if (a == b)
-    return 0;
-  else /* a > b */
-    return 1;
-} /* Compare */
-
-/*-------------------------------------------------------------------
- * Function: Print_list
- * Purpose: Print a list of ints to stdout
- * In args:
- * local_array: the list
- * n: the number of elements in the list
+/**
+ * @brief Print a list of DATATYPE to stdout;
+ * each element is represented as a double with 
+ * two decimal places.
+ * 
+ * PRE: the DATATYPE shall be a primitive data type 
+ * @param local_array the array to be printed
+ * @param n the size of the array 
  */
 void Print_list(DATATYPE local_array[], int n) {
   int i;
   for (i = 0; i < n; i++)
     printf("%.2lf ", (double)local_array[i]);
   printf("\n");
-} /* Print_list */
+} 
 
-/*-------------------------------------------------------------------
- * Function: Merge_sort
- * Purpose: Parallel merge sort: starts with a distributed
- * collection of sorted lists, ends with a global
- * sorted list on process 0. Uses tree-structured
- * communication.
- * In args: local_n: number of elements contributed by each process
- * my_rank, p, comm: the usual
- *
- * In/out arg: local_array: each process's local sorted list on input
- * global sorted list on process 0 on output
+/**
+ * @brief Parallel merge sort: starts with a distributed
+ * collection of sorted lists, produces a global sorted list on process
+ * with rank 0. Uses tree-structured communication.
+ * 
+ * @param local_array the sorted array from the process; the global sorted array will be saved here  
+ * @param local_n the size of the array
+ * @param rank rank of the process
+ * @param n_rank size of communicator
+ * @param comm the communicator
  */
-void Merge_sort(DATATYPE* local_array, int local_n, int my_rank, int p, MPI_Comm comm) {
+void Merge_sort(DATATYPE* local_array, int local_n, int rank, int n_rank, MPI_Comm comm) {
   int partner, done = 0, size = local_n;
   unsigned bitmask = 1;
-  DATATYPE * B, * C;
+  DATATYPE *B, *C;
   MPI_Status status;
 
-  B = malloc(p * local_n * sizeof(DATATYPE));
-  C = malloc(p * local_n * sizeof(DATATYPE));
+  B = malloc(n_rank * local_n * sizeof(DATATYPE));
+  C = malloc(n_rank * local_n * sizeof(DATATYPE));
 
-  while (!done && bitmask < p) {
-    partner = my_rank ^ bitmask;
-    if (my_rank > partner) {
+  while (!done && bitmask < n_rank) {
+    partner = rank ^ bitmask;
+    if (rank > partner) { // process send to partner
       MPI_Send(local_array, size, MPITYPE, partner, 0, comm);
       done = 1;
-    } else {
+    } else { // process receive from partner 
       MPI_Recv(B, size, MPITYPE, partner, 0, comm, & status);
       Merge(local_array, B, C, size);
       size = 2 * size;
@@ -203,26 +188,26 @@ void Merge_sort(DATATYPE* local_array, int local_n, int my_rank, int p, MPI_Comm
     }
   }
 
-  free(B);
+  free(B); // No memory leaks!
   free(C);
-} /* Merge_sort */
+} 
 
-/*-------------------------------------------------------------------
- * Function: Merge
- * Purpose: Merge two sorted lists, local_array, B. Return result in local_array.
- * C is used for scratch. Both local_array and B have size elements.
- * In args: B: second input array
- * size: number of elements in local_array and B
- * In/out arg: local_array: first input array, output array
- * Scratch: C: temporary storage for merged lists
+/**
+ * @brief Merge two sorted lists, A and B. Return result in A.
+ * C is used for scratch. Both A and B have size elements.
+ * 
+ * @param A first input array
+ * @param B second input array
+ * @param C temporary array for merged lists
+ * @param size dimen of the three arrays
  */
-void Merge(DATATYPE* local_array, DATATYPE* B, DATATYPE* C, int size) {
+void Merge(DATATYPE* A, DATATYPE* B, DATATYPE* C, int size) {
   int ai, bi, ci;
 
   ai = bi = ci = 0;
   while (ai < size && bi < size)
-    if (local_array[ai] <= B[bi]) {
-      C[ci] = local_array[ai];
+    if (A[ai] <= B[bi]) {
+      C[ci] = A[ai];
       ci++;
       ai++;
     } else {
@@ -236,12 +221,18 @@ void Merge(DATATYPE* local_array, DATATYPE* B, DATATYPE* C, int size) {
       C[ci] = B[bi];
   else
     for (; ci < 2 * size; ci++, ai++)
-      C[ci] = local_array[ai];
+      C[ci] = A[ai];
       
-  memcpy(local_array, C, 2 * size * sizeof(DATATYPE));
-} /* Merge */
+  memcpy(A, C, 2 * size * sizeof(DATATYPE));
+} 
 
-
+/**
+ * @brief Check if the string parameter
+ *  is a valid non-negative integer and convert it. 
+ * If is invalid exit with failure
+ * @param par string to be checked and converted
+ * @return int The integer converted from the string
+ */
 int check_int_input(const char* par){
     /**
      * from https://stackoverflow.com/questions/9748393/how-can-i-get-argv-as-int
@@ -266,33 +257,82 @@ int check_int_input(const char* par){
     return val;
 }
 
+/**
+ * @brief Implementation of iterative-recursive quicksort. 
+ * The recursion is executed only on the shorter array to be 
+ * sorted, so the recursive call are reduced and the system stack
+ * instead of the heap can be used.
+ * 
+ * adapted from https://it.wikipedia.org/wiki/Quicksort
+ * 
+ * @param list the list to be sorted 
+ * @param lo lower part of the list to be sorted
+ * @param hi higher part of the list to be sorted
+ */
 
-/*QuickSort using median of low, middle, high, values as pivot*/
-void quickSort(DATATYPE a[], int lo, int hi) {
-    int i = lo, j = (lo + hi)/2, k = hi;
-    int pivot;
-    if (a[k] < a[i]) swap(&a[k], &a[i]);
-    if (a[j] < a[i]) swap(&a[j], &a[i]);
-    if (a[k] < a[j]) swap(&a[k], &a[j]);
-    pivot = a[j];
-    while (i <= k) {            // partition
-        while (a[i] < pivot) i++;
-        while (a[k] > pivot) k--;
-        if (i <= k) {
-            swap(&a[i], &a[k]);
-            i++;
-            k--;
+void quickSort(DATATYPE* list, int lo, int hi) {
+    DATATYPE pivot; DATATYPE tmp;
+    
+    int  l,r,p;
+
+      while (lo < hi) {   // The while loop replaces the second recursive call
+    
+        l = lo; p = (lo+hi)/2; r = hi;
+        pivot = list[p];
+
+        while (1){
+            while ((l<=r) && (compare(&list[l],&pivot) <= 0)) l++;
+            while ((l<=r) && (compare(&list[r],&pivot)  > 0)) r--;
+
+            if (l>r) break;
+            
+            //swap list[l] & list[r]
+            DATATYPE tmp = list[l];
+            list[l] = list[r];
+            list[r] = tmp;
+
+            if (p == r){
+              p = l;
+            }
+            
+            l++;
+            r--;
         }
-    }
-    if (lo < k)   // recurse in the lower half
-        quickSort(a, lo, k);
-    if (i < hi)
-        quickSort(a, i, hi); // recurse in the higher half
+
+        list[p] = list[r];
+        list[r] = pivot;
+        r--;
+
+        // Select the shorter side of the array & call recursion
+        if ((r-lo)<(hi-l)) {
+            quickSort(list, lo, r);
+            lo=l;
+        }
+        else {
+            quickSort(list, l, hi);
+            hi = r;
+        }
+    }   
 }
 
-void swap(DATATYPE* a,DATATYPE* b){
-  DATATYPE tmp;
-  tmp = *a;
-  *a = *b;
-  *b = tmp;
-}
+/**
+ * @brief Compare 2 DATATYPES, return -1, 0, or 1,
+ *  respectively, when  the first element is 
+ * less than, equal, or greater than
+ * the second.
+ * 
+ * @param a_p first element to compare
+ * @param b_p second element to compare
+ * @return int result of the compare
+ */
+int compare(const void* a_p, const void* b_p) {
+  int a = * ((DATATYPE* ) a_p);
+  int b = * ((DATATYPE* ) b_p);
+
+  if (a < b)
+    return -1;
+  else if (a == b)
+    return 0;
+  else /* a > b */
+    return 1;
+} 

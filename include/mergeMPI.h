@@ -18,7 +18,6 @@ int check_int_input(const char* par);
 
 /* sort function and helpers */
 void quickSort(DATATYPE* a, int lo, int hi);
-void swap(DATATYPE* a,DATATYPE* b);
 int compare(const void* a_p, const void* b_p);
 
 /* Local functions */
