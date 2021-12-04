@@ -10,7 +10,7 @@ project(MergeSortProjectMPI
 set(CMAKE_C_STANDARD 11) # default standard C11
 enable_testing()
 
-
+#------------------------- EXECUTABLE GENERATION ----------------------------
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/executables) #redirect executables in "executables" directory
 
 include_directories(include)
@@ -23,3 +23,16 @@ if(MPI_C_FOUND)
 endif()
 
 target_compile_options(mpi_exe PRIVATE -O3)
+#-----------------------------------------------------------------------------
+
+#------------------------------- DOCUMENTATION -------------------------------
+
+#-----------------------------------------------------------------------------
+
+#----------------------------- MEASURE GENERATION ----------------------------
+
+#-----------------------------------------------------------------------------
+
+#----------------------------- MEASURE EXTRACTION ----------------------------
+
+#-----------------------------------------------------------------------------
