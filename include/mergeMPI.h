@@ -33,6 +33,8 @@ void Print_global_list(DATATYPE* local_array, int local_n, int my_rank, int p, M
 
 // Macro for measuring MPI execution time 
 #define START_T(X) X = MPI_Wtime();
+
+// execute the sum of the times taken by each process
 #define END_T(end,start,comm,sum) do { \
     end = MPI_Wtime() - start; \
     MPI_Barrier(comm); \
