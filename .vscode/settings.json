@@ -1,5 +1,6 @@
 {
     "files.associations": {
-        "mergempi.h": "c"
+        "mergempi.h": "c",
+        "mergesort_serial.h": "c"
     }
 }

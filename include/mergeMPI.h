@@ -3,18 +3,15 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <errno.h>  // to check correctness of input
-#include <limits.h> // for INT_MIN and INT_MAX
 #include <mpi.h>
 
+#include "datatype.h"
 
 // shall be changed accordingly
 // for example: (MPI_INT, int) or (MPI_DOUBLE, double)
 #define MPITYPE MPI_INT
-typedef int DATATYPE; // char, ints, unsigned, floats, doubles supported
 
-int check_int_input(const char* par);
+
 
 /* sort function and helpers */
 void quickSort(DATATYPE* a, int lo, int hi);
