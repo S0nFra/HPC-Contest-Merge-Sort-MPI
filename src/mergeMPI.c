@@ -8,7 +8,7 @@ int main(int argc, char * argv[]) {
   int local_size;
   MPI_Comm comm;
 
-  double init_time_mean, init_local_time_mean;
+  double init_time, local_time_sort;
 
   MPI_Init(&argc, &argv);
   comm = MPI_COMM_WORLD;
@@ -27,19 +27,18 @@ int main(int argc, char * argv[]) {
   int testMode = (argc == 5) ? check_int_input(argv[4]) : 0;
 
   local_size = size / n_rank;
-  local_array = malloc(n_rank * local_size * sizeof(DATATYPE));
+  local_array = malloc(size * sizeof(DATATYPE)); // n_rank * local_size * sizeof(DATATYPE)
 
-  init_time_mean = init(local_array, local_size, n_rank, rank, filename, VERSION, comm);
+  init_time = init(local_array, local_size, n_rank, rank, filename, VERSION, comm);
 
   if(testMode && rank == 0)
   if (rank == 0)
-    printf("init time taken: %.3lf\n", init_time_mean);
+    printf("init time taken: %.3lf\n", init_time);
 
-  init_local_time_mean = init_local_sort(local_array, local_size, n_rank, rank, comm);
-
+  local_time_sort = init_local_sort(local_array, local_size, n_rank, rank, comm);
 
   if (testMode && rank == 0)
-    printf("init local sort time taken: %.3lf\n", init_local_time_mean);
+    printf("init local sort time taken: %.3lf\n", local_time_sort);
 
   if(testMode)
     Print_global_list(local_array, local_size, rank, n_rank, comm);
@@ -48,6 +47,10 @@ int main(int argc, char * argv[]) {
 
   if(testMode && rank == 0)
     Print_list(local_array, size);
+  
+  // OUTPUT
+  if (rank == 0)
+    printf("%d;%d;%lf,%lf\n",size,n_rank,init_time,local_time_sort);
 
   free(local_array);
   MPI_Finalize();
@@ -79,16 +82,19 @@ double init(DATATYPE *local_array, int local_size, int n_rank, int rank, char* f
   //start counting time
   START_T(start)
 
-  if (version == 1){ // many collective, contigous requests
+  if (version == 0 || version == 1){ // many independent, contiguous requests
     MPI_Offset offset = rank * local_size * sizeof(DATATYPE);
     MPI_File_open(com, filename, MPI_MODE_RDONLY, MPI_INFO_NULL, &fh);
     for (int i=0; i<n_rank; i++){
       MPI_File_seek(fh, offset, MPI_SEEK_SET);
-      MPI_File_read_all(fh, local_array, local_size, MPITYPE, &status);
+      if (version == 0) // many independent, contiguous requests
+        MPI_File_read(fh, local_array, local_size, MPITYPE, &status);
+      else // version 1 many collective, contiguous requests
+        MPI_File_read_all(fh, local_array, local_size, MPITYPE, &status);
     }
     MPI_File_close(&fh);
-  }
-  else if (version == 2){ // single collective, noncontigous request
+
+  } else if (version == 2 || version == 3){ //single independent, noncontiguous request
     MPI_Datatype array_integer_type;
     MPI_Type_contiguous(local_size, MPITYPE , &array_integer_type);
     MPI_Type_commit(&array_integer_type);
@@ -97,7 +103,10 @@ double init(DATATYPE *local_array, int local_size, int n_rank, int rank, char* f
 
     MPI_File_open(com, filename, MPI_MODE_RDONLY, MPI_INFO_NULL, &fh);  
     MPI_File_set_view(fh, displacement, MPITYPE, array_integer_type, "native", MPI_INFO_NULL);
-    MPI_File_read_all(fh, local_array, local_size, MPITYPE, &status);
+    if(version == 2) // single independent, noncontiguous request
+      MPI_File_read(fh, local_array, local_size, MPITYPE, &status);
+    else // version 3 : single collective, noncontiguous request
+      MPI_File_read_all(fh, local_array, local_size, MPITYPE, &status);
     MPI_File_close(&fh);
   }
   //stop the timer
@@ -241,7 +250,7 @@ void Merge(DATATYPE* A, DATATYPE* B, DATATYPE* C, int size) {
  */
 
 void quickSort(DATATYPE* list, int lo, int hi) {
-    DATATYPE pivot; DATATYPE tmp;
+    DATATYPE pivot;
     
     int  l,r,p;
 
