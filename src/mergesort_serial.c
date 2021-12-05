@@ -63,7 +63,13 @@ int read_file(char* filename, DATATYPE* array, int arraySize){
       fp = fopen(filename,"rb");
       if(fp != NULL){ //successfully opened the file
          if(array != NULL){ // destination array is available
-              fread(array, sizeof(DATATYPE), arraySize, fp);
+            size_t ret = fread(array, sizeof(DATATYPE), arraySize, fp);
+            if(ret != arraySize){ // elements read not equal to size of the buffer
+               char* quantity = (ret > arraySize) ? "more" : "less";
+               fprintf(stderr,"read %s elements than expected", quantity);
+               fclose(fp); // close the file!
+               return -1; // FAIL 
+            }
          }
          fclose(fp); //close the file!
          return 1; //success 
