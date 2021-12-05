@@ -82,7 +82,7 @@ double init(DATATYPE *local_array, int local_size, int n_rank, int rank, char* f
   //start counting time
   START_T(start)
 
-  if (version == 0 || version == 1){ // many independent, contiguous requests
+  if (version == 0 || version == 1){ // contiguous requests
     MPI_Offset offset = rank * local_size * sizeof(DATATYPE);
     MPI_File_open(com, filename, MPI_MODE_RDONLY, MPI_INFO_NULL, &fh);
     for (int i=0; i<n_rank; i++){
@@ -94,7 +94,7 @@ double init(DATATYPE *local_array, int local_size, int n_rank, int rank, char* f
     }
     MPI_File_close(&fh);
 
-  } else if (version == 2 || version == 3){ //single independent, noncontiguous request
+  } else if (version == 2 || version == 3){ // noncontiguous request
     MPI_Datatype array_integer_type;
     MPI_Type_contiguous(local_size, MPITYPE , &array_integer_type);
     MPI_Type_commit(&array_integer_type);
