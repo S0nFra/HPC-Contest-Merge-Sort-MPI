@@ -12,7 +12,7 @@ INPUT_FILES_PATH = Path.cwd().parent / Path('data')
 INPUT_SIZE_LIST = (2**16,2**18,2**19)
 PROCS = (0, 1, 2, 4, 8, 16)
 MSRS = 10  # Number of measures taken
-VERSIONS = (1,2,3,4)
+VERSIONS = (0,1,2,3)
 CASES = 2 # O0 and O3
 
 CASE_ONE_PATH = DST_FOLDER / Path("Case_1")
@@ -78,21 +78,14 @@ def generate_measures():
                         #prima colonna da scrivere 
                         fout.write('size;threads;read_time;merge_time;elapsed;user;sys\n')
                         if(proc_num == 0):
-                            desc = f"Executing {output_measures_path.name} with size 2^{in_size}..."
+                            desc = f"Executing {exe_serial_path.name} version {version} with size 2^{in_size}..."
                         else:
-                            desc = f"Executing {output_measures_path.name} with {proc_num} threads and size 2^{in_size} ..."
+                            desc = f"Executing {exe_mpi_path.name} version {version} with {proc_num} threads and size 2^{in_size} ..."
                         # helpful progress bar
                         for i in tqdm(range(MSRS), desc=desc):
                             data = measure_exec_time(command)
                             # writing into the file the repr of TestResult
                             fout.write(str(data))
                     
-    
-    
-
-    
-
-    
-
 if __name__ == "__main__":
     generate_measures()
