@@ -37,7 +37,24 @@ target_compile_options(merge_serial_O3 PRIVATE -O3)
 #-----------------------------------------------------------------------------
 
 #----------------------------- MEASURE GENERATION ----------------------------
+find_package(Python3 COMPONENTS Interpreter REQUIRED)
+find_program(Pip pip REQUIRED)
 
+add_custom_target(
+	install_requirems
+	COMMAND REQUIREMENTS_FILE=${CMAKE_CURRENT_SOURCE_DIR}/scripts/requirements.txt ${Pip} install -r ${CMAKE_CURRENT_SOURCE_DIR}/scripts/requirements.txt
+	COMMENT "Installing python dependencies [${Pip} install]"
+	DEPENDS	${CMAKE_CURRENT_SOURCE_DIR}/scripts/requirements.txt
+)
+
+add_custom_target(
+    generate_measures
+    COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_measures.py
+    COMMENT "Generating measures [python ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_measures.py]"
+    DEPENDS	
+		install_requirems
+		${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_measures.py
+)
 #-----------------------------------------------------------------------------
 
 #----------------------------- MEASURE EXTRACTION ----------------------------
