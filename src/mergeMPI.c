@@ -50,7 +50,7 @@ int main(int argc, char * argv[]) {
   
   // OUTPUT
   if (rank == 0)
-    printf("%d;%d;%lf,%lf\n",size,n_rank,init_time,local_time_sort);
+    printf("%d;%d;%lf;%lf\n",size,n_rank,init_time,local_time_sort);
 
   free(local_array);
   MPI_Finalize();
