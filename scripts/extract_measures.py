@@ -165,7 +165,7 @@ if __name__ == '__main__':
 
     # Read a file with columns name in csv files
     output_data_info = "size;processes;read_time;merge_time;elapsed;user;sys".split(';')
-    targetColumn = "elapsed"
+    targetColumn = "merge_time" # "elapsed"
     
     measure_source = []
     for case in range(1,CASES+1):
@@ -219,4 +219,4 @@ if __name__ == '__main__':
                 table.append(row)
             # print(tabulate(table, tablefmt='fancy_grid'))
         
-            make_table(table, filename= dir/'{}_{}.csv'.format(folder,'table'), img=True, save=True, print_table=False)
+            make_table(table, filename= dir/'{}_{}_{}.csv'.format(folder,'table',targetColumn), img=True, save=True, print_table=False)
