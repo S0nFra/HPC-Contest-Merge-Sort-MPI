@@ -163,14 +163,24 @@ if __name__ == '__main__':
 
     RE_CSV = "(mpi_[0-9]+|serial)_[0-9]+"
     RE_SEQ = "serial_[0-9]+"
+    
+    opts = [opt for opt in sys.argv[1:] if opt.startswith("-")]
+    args = [arg for arg in sys.argv[1:] if not arg.startswith("-")]
 
     # Read a file with columns name in csv files
     output_data_info = "size;processes;read_time;merge_time;elapsed;user;sys".split(';')
-    targetColumn = "merge_time" if len(sys.argv) < 2 else sys.argv[1]
+    targetColumn = "merge_time" if len(sys.argv) < 2 else args[0]
     
     if targetColumn not in output_data_info:        
         print(targetColumn, "wrong target column")
         exit()
+    
+    toSumColumn = None
+    if "-summ" in opts:
+        if args[1] not in output_data_info:
+            print("cant sum \"", args[1], "\" to \"", args[0])
+            exit()
+        toSumColumn = args[1]
     
     measure_source = []
     for case in range(1,CASES+1):
@@ -189,13 +199,19 @@ if __name__ == '__main__':
         print("Data extraction... ",end="")
         data = get_data(output_data_info, file_re=RE_CSV, serial_re=RE_SEQ)
         print("DONE")
-    
+        
         print("# Generating graphs and tables")
         # for folder in tqdm(data.keys()):
         for folder in data.keys():        
             print('>>',folder)
             dir = move_on / folder
             d = data[folder]
+            
+            # print("### PRIMA ###\n",d[targetColumn],"\n",d[toSumColumn])            
+            if toSumColumn != None:
+                print(f"Summing \"{toSumColumn}\" to \"{targetColumn}\"")
+                d[targetColumn] = [(data[0], data[1]+toSum[1]) for data, toSum in zip(d[targetColumn],d[toSumColumn])]                
+            # print("### DOPO ###\n",d[targetColumn],"\n",d[toSumColumn])
 
             serial,parallel = splitNumbers(d[targetColumn], RE_SEQ)
 
@@ -207,7 +223,11 @@ if __name__ == '__main__':
                 speedup.append(tmp_speedup)
                 eff.append(tmp_eff)
             # speedup = [1/s for s in speedup]
-            plot_graph(PROCS, speedup, Path(dir/'{}_{}.jpg'.format(folder,targetColumn)))
+            if toSumColumn is None:
+                outputFileName = '{}_{}.jpg'.format(folder,targetColumn)
+            else:
+                outputFileName = '{}_{}+{}.jpg'.format(folder,targetColumn,toSumColumn)
+            plot_graph(PROCS, speedup, Path(dir/outputFileName))
             
             # Generating tables
             serial_index = serialIndex(d[targetColumn], RE_SEQ)
@@ -223,5 +243,10 @@ if __name__ == '__main__':
                 j += 1
                 table.append(row)
             # print(tabulate(table, tablefmt='fancy_grid'))
-        
-            make_table(table, filename= dir/'{}_{}_{}.csv'.format(folder,'table',targetColumn), img=True, save=True, print_table=False)
+
+            if toSumColumn is None:
+                outputFileName = '{}_{}_{}.csv'.format(folder,'table',targetColumn)
+            else:
+                outputFileName = '{}_{}_{}+{}.csv'.format(folder,'table',targetColumn,toSumColumn)
+            
+            make_table(table, filename= dir/outputFileName, img=True, save=True, print_table=False)
