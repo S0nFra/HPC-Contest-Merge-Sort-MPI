@@ -1,6 +1,6 @@
 import numpy as np
 
-sizes = [16,18,19] # exponent of the size
+sizes = [16,18,19,20] # exponent of the size
 min = np.iinfo(np.int32).min
 max = np.iinfo(np.int32).max
 

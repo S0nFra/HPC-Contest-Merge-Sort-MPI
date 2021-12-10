@@ -9,9 +9,9 @@ SRC_FOLDER = Path.cwd().parent / Path('build/executables')
 DST_FOLDER = Path.cwd().parent / Path('measures')
 INPUT_FILES_PATH = Path.cwd().parent / Path('data')
 
-INPUT_SIZE_LIST = (2**16,2**18,2**19)
-PROCS = (0, 1, 2, 4, 8, 16)
-MSRS = 10  # Number of measures taken
+INPUT_SIZE_LIST = (2**16,2**18,2**19,2**20)
+PROCS = (0, 2, 4, 8, 16) # 1 not considered 
+MSRS = 100  # Number of measures taken
 VERSIONS = (0,1,2,3)
 CASES = 2 # O0 and O3
 
@@ -62,25 +62,30 @@ def generate_measures():
             for in_size_n,input_size in enumerate(INPUT_SIZE_LIST): # for each size
                 
                 input_file = INPUT_FILES_PATH / Path(inputs[in_size_n])
+                in_size = f"{int(log2(input_size))}"
+                
+                SIZE_OUT_PATH = VERSION_PATH / Path(f"size_{in_size}")
+                create_dir_if_not_exists(SIZE_OUT_PATH)
                 
                 for proc_num in PROCS: # for each number of Computing Elements
-                    in_size = f"{int(log2(input_size))}"
+                    
                     if(proc_num == 0): # serial
-                        output_measures_path = VERSION_PATH / Path(f"serial_{in_size}.csv")
+                        output_measures_path = SIZE_OUT_PATH / Path(f"serial_{in_size}.csv")
                         command = f"{exe_serial_path} \'{input_file}\' {input_size}"
                     else: # parallel
-                        output_measures_path = VERSION_PATH / Path(f"mpi_{proc_num}_{in_size}.csv")
+                        output_measures_path = SIZE_OUT_PATH / Path(f"mpi_{proc_num}_{in_size}.csv")
                         command = f"mpirun -np {proc_num} {exe_mpi_path} \'{input_file}\' {input_size} {version}"
                     
                     #print(f"executing version {version}, input size {input_size} and {proc_num} CE with command: {command}")
                     #print(output_measures_path)
+                    
                     with open(Path(output_measures_path), 'w+') as fout:
                         #prima colonna da scrivere 
-                        fout.write('size;threads;read_time;merge_time;elapsed;user;sys\n')
+                        fout.write('size;processes;read_time;merge_time;elapsed;user;sys\n')
                         if(proc_num == 0):
                             desc = f"Executing {exe_serial_path.name} version {version} with size 2^{in_size}..."
                         else:
-                            desc = f"Executing {exe_mpi_path.name} version {version} with {proc_num} threads and size 2^{in_size} ..."
+                            desc = f"Executing {exe_mpi_path.name} version {version} with {proc_num} processes and size 2^{in_size} ..."
                         # helpful progress bar
                         for i in tqdm(range(MSRS), desc=desc):
                             data = measure_exec_time(command)
