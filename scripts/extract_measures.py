@@ -25,6 +25,7 @@
 
 from os import mkdir
 import os.path
+import sys
 from pathlib import Path
 from tqdm import tqdm
 from colorama import Fore, Back, Style
@@ -165,7 +166,11 @@ if __name__ == '__main__':
 
     # Read a file with columns name in csv files
     output_data_info = "size;processes;read_time;merge_time;elapsed;user;sys".split(';')
-    targetColumn = "merge_time" # "elapsed"
+    targetColumn = "merge_time" if len(sys.argv) < 2 else sys.argv[1]
+    
+    if targetColumn not in output_data_info:        
+        print(targetColumn, "wrong target column")
+        exit()
     
     measure_source = []
     for case in range(1,CASES+1):
