@@ -23,27 +23,26 @@ class TestResult:
     user_time: float
     sys_time: float
 
-    def convertToData(msg:str):
-        msg = "{}".format(msg.decode("utf-8")).replace('\n','').split(';')
-        if(len(msg) != 7):
+    def convert_to_data(msg: str):
+        msg = "{}".format(msg.decode("utf-8")).replace('\n', '').split(';')
+        if len(msg) != 7:
             raise Exception("could not convert measures to valid data")
-        
+
         return TestResult(
-            size_arr= msg[0],
-            thread_num= msg[1],
-            read_t= msg[2],
-            compute= msg[3],
+            size_arr=msg[0],
+            thread_num=msg[1],
+            read_t=msg[2],
+            compute=msg[3],
             real_time=msg[4],
             user_time=msg[5],
             sys_time=msg[6]
         )
-        
-        
-        
-    def getRealTime(self):
+
+    def get_real_time(self):
         return float(self.real_time)
-    def getComposedTime(self):
-        return round(float(self.read_t) + float(self.compute),3)
-    
+
+    def get_composed_time(self):
+        return round(float(self.read_t) + float(self.compute), 3)
+
     def __str__(self) -> str:
         return f"{self.size_arr};{self.thread_num};{self.read_t};{self.compute};{self.real_time};{self.user_time};{self.sys_time}\n"
