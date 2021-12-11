@@ -240,12 +240,12 @@ if __name__ == '__main__':
             table.append(row)
             j = 0
             for j in range(len(PROCS)-1):
-                row = ['Parallel',PROCS[j+1],'%.5f'%d['read_time'][j][1],'%.5f'%d['merge_time'][j][1],'%.5f'%d['user'][j][1],'%.5f'%d['sys'][j][1],'%.5f'%d['elapsed'][j][1],'%.5f'%speedup[j],'%.5f'%eff[j]]
+                row = ['Parallel',PROCS[j+1],'%.5f'%d['read_time'][j][1],'%.5f'%d['merge_time'][j][1],'%.5f'%d['user'][j][1],'%.5f'%d['sys'][j][1],'%.5f'%d['elapsed'][j][1],'%.5f'%speedup[j+1],'%.5f'%eff[j+1]]
                 table.append(row)
 
             if toSumColumn is None:
-                outputFileName = '{}_{}_{}.csv'.format(folder,'table',targetColumn)
+                outputFileName = '{}_{}_{}3.csv'.format(folder,'table',targetColumn)
             else:
-                outputFileName = '{}_{}_{}+{}.csv'.format(folder,'table',targetColumn,toSumColumn)
+                outputFileName = '{}_{}_{}+{}3.csv'.format(folder,'table',targetColumn,toSumColumn)
             
             make_table(table, filename= dir/outputFileName, img=True, save=True, print_table=False)
