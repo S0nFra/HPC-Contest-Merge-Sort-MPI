@@ -1,3 +1,13 @@
+/**
+ * @file utils.h
+ * @author Mario Pellegrino
+ * @author Francesco Sonnessa
+ * @brief Function prototypes for utility functions
+ * @version 0.1
+ * 
+ * @copyright Copyright (c) 2021
+ * 
+ */
 #ifndef FDF65B0C_B221_4A62_8ABF_4B3AA35CA7F1
 #define FDF65B0C_B221_4A62_8ABF_4B3AA35CA7F1
 

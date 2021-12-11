@@ -1,3 +1,14 @@
+/**
+ * @file mergeMPI.c
+ * @author Mario Pellegrino
+ * @author Francesco Sonnessa
+ * @brief  Parallel implementation of mergesort using MPI
+ * @version 0.1
+ * 
+ * @copyright Copyright (c) 2021
+ * 
+ */
+
 #include "../include/mergeMPI.h"
 #include "../include/utils.h"
 

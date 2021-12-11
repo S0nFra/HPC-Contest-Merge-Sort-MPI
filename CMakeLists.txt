@@ -1,4 +1,3 @@
-
 cmake_minimum_required(VERSION 3.12)
 
 project(MergeSortProjectMPI
@@ -33,7 +32,21 @@ target_compile_options(merge_serial_O3 PRIVATE -O3)
 #-----------------------------------------------------------------------------
 
 #------------------------------- DOCUMENTATION -------------------------------
+find_package(Doxygen REQUIRED dot)
 
+if(DOXYGEN_FOUND)
+	set(DOXYGEN_GENERATE_XML YES)
+	doxygen_add_docs(
+	  docs 
+		${CMAKE_SOURCE_DIR}/include/datatype.h 
+		${CMAKE_SOURCE_DIR}/include/mergeMPI.h
+		${CMAKE_SOURCE_DIR}/include/mergesort_serial.h
+		${CMAKE_SOURCE_DIR}/include/utils.h
+		${CMAKE_SOURCE_DIR}/src/mergeMPI.c
+		${CMAKE_SOURCE_DIR}/src/mergesort_serial.c
+		${CMAKE_SOURCE_DIR}/src/utils.c
+		)
+endif()
 #-----------------------------------------------------------------------------
 
 #----------------------------- MEASURE GENERATION ----------------------------

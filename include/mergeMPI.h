@@ -1,3 +1,13 @@
+/**
+ * @file mergeMPI.h
+ * @author Mario Pellegrino
+ * @author Francesco Sonnessa
+ * @brief Function prototypes for parallel mergesort
+ * @version 0.1
+ * 
+ * @copyright Copyright (c) 2021
+ * 
+ */
 #ifndef FC3F2AA5_0F53_437C_BCCF_B452F14760FC
 #define FC3F2AA5_0F53_437C_BCCF_B452F14760FC
 

@@ -1,3 +1,13 @@
+/**
+ * @file mergesort_serial.c
+ * @author Mario Pellegrino
+ * @author Francesco Sonnessa
+ * @brief Serial implementation of Mergesort algorithm
+ * @version 0.1
+ * 
+ * @copyright Copyright (c) 2021
+ * 
+ */
 #include "../include/mergesort_serial.h"
 #include "../include/utils.h"
 

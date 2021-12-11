@@ -1,3 +1,13 @@
+/**
+ * @file utils.c
+ * @author Mario Pellegrino
+ * @author Francesco Sonnessa
+ * @brief Utility functions
+ * @version 0.1
+ * 
+ * @copyright Copyright (c) 2021
+ * 
+ */
 #include "../include/utils.h"
 
 /**

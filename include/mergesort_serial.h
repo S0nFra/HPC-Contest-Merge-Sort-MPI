@@ -1,3 +1,13 @@
+/**
+ * @file mergesort_serial.h
+ * @author Mario Pellegrino
+ * @author Francesco Sonnessa
+ * @brief Function prototypes for serial mergesort
+ * @version 0.1
+ * 
+ * @copyright Copyright (c) 2021
+ * 
+ */
 #ifndef F15EE0A8_AB33_42A0_AAAF_C6B4A6C041DC
 #define F15EE0A8_AB33_42A0_AAAF_C6B4A6C041DC
 
