@@ -244,8 +244,8 @@ if __name__ == '__main__':
                 table.append(row)
 
             if toSumColumn is None:
-                outputFileName = '{}_{}_{}3.csv'.format(folder,'table',targetColumn)
+                outputFileName = '{}_{}_{}.csv'.format(folder,'table',targetColumn)
             else:
-                outputFileName = '{}_{}_{}+{}3.csv'.format(folder,'table',targetColumn,toSumColumn)
+                outputFileName = '{}_{}_{}+{}.csv'.format(folder,'table',targetColumn,toSumColumn)
             
             make_table(table, filename= dir/outputFileName, img=True, save=True, print_table=False)
