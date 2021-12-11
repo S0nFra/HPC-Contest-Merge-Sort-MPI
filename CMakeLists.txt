@@ -58,5 +58,12 @@ add_custom_target(
 #-----------------------------------------------------------------------------
 
 #----------------------------- MEASURE EXTRACTION ----------------------------
-
+add_custom_target(
+    extract_measures
+    COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/scripts/extract_measures.py && python3 ${CMAKE_CURRENT_SOURCE_DIR}/scripts/extract_measures.py elapsed
+    COMMENT "Generating measures [python ${CMAKE_CURRENT_SOURCE_DIR}/scripts/extract_measures.py]"
+    DEPENDS	
+		install_requirems
+		${CMAKE_CURRENT_SOURCE_DIR}/scripts/extract_measures.py
+)
 #-----------------------------------------------------------------------------
