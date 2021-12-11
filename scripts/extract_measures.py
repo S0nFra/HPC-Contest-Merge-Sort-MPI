@@ -223,6 +223,7 @@ if __name__ == '__main__':
                 speedup.append(tmp_speedup)
                 eff.append(tmp_eff)
             # speedup = [1/s for s in speedup]
+            
             if toSumColumn is None:
                 outputFileName = '{}_{}.jpg'.format(folder,targetColumn)
             else:
@@ -234,15 +235,13 @@ if __name__ == '__main__':
             table = []
             header_table = ['Version','Process','Read time','Merge time','User','Sys','Elapsed','Speedup','Efficiency']
             table.append(header_table)
+            j = len(PROCS)-1
+            row = ['Serial',1,'%.5f'%d['read_time'][j][1],'%.5f'%d['merge_time'][j][1],'%.5f'%d['user'][j][1],'%.5f'%d['sys'][j][1],'%.5f'%d['elapsed'][j][1],1,1]
+            table.append(row)
             j = 0
-            for procs in PROCS:
-                if procs == 0:
-                    row = ['Serial',1,'%.5f'%d['read_time'][j][1],'%.5f'%d['merge_time'][j][1],'%.5f'%d['user'][j][1],'%.5f'%d['sys'][j][1],'%.5f'%d['elapsed'][j][1],1,1]
-                else:
-                    row = ['Parallel',procs,'%.5f'%d['read_time'][j][1],'%.5f'%d['merge_time'][j][1],'%.5f'%d['user'][j][1],'%.5f'%d['sys'][j][1],'%.5f'%d['elapsed'][j][1],'%.5f'%speedup[j],'%.5f'%eff[j]]
-                j += 1
+            for j in range(len(PROCS)-1):
+                row = ['Parallel',PROCS[j+1],'%.5f'%d['read_time'][j][1],'%.5f'%d['merge_time'][j][1],'%.5f'%d['user'][j][1],'%.5f'%d['sys'][j][1],'%.5f'%d['elapsed'][j][1],'%.5f'%speedup[j],'%.5f'%eff[j]]
                 table.append(row)
-            # print(tabulate(table, tablefmt='fancy_grid'))
 
             if toSumColumn is None:
                 outputFileName = '{}_{}_{}.csv'.format(folder,'table',targetColumn)
