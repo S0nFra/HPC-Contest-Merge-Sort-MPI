@@ -35,7 +35,6 @@ import pandas
 import re  # Regular Expression
 from tabulate import tabulate
 
-
 def atoi(text):
     return int(text) if text.isdigit() else text
 
@@ -234,8 +233,7 @@ if __name__ == '__main__':
             speedup = []
             eff = []
             for i in range(len(PROCS)):
-                tmp_speedup, tmp_eff = compute_speedup(serial if i != 0 else 0, parallel[i - 1] if i != 0 else 1,
-                                                       PROCS[i] if i != 0 else 1)
+                tmp_speedup, tmp_eff = compute_speedup(serial if i != 0 else 0, parallel[i - 1] if i != 0 else 1, PROCS[i] if i != 0 else 1)
                 speedup.append(tmp_speedup)
                 eff.append(tmp_eff)
             # speedup = [1/s for s in speedup]
@@ -249,8 +247,7 @@ if __name__ == '__main__':
             # Generating tables
             si = serial_index(d[targetColumn], RE_SEQ)
             table = []
-            header_table = ['Version', 'Process', 'Read time', 'Merge time', 'User', 'Sys', 'Elapsed', 'Speedup',
-                            'Efficiency']
+            header_table = ['Version', 'Process', 'Read time', 'Merge time', 'User', 'Sys', 'Elapsed', 'Speedup', 'Efficiency']
             table.append(header_table)
             j = len(PROCS) - 1
             row = ['Serial', 1, '%.5f' % d['read_time'][j][1], '%.5f' % d['merge_time'][j][1], '%.5f' % d['user'][j][1],
