@@ -144,6 +144,7 @@ def get_data(csv_header: list, directory: Path = None, file_re="", serial_re: st
 
         if info > 1:
             print('\n\n### DATA_FOLDER ###\n', data_folder, '\n\n')
+        
         data[folder] = data_folder
     return data
 
@@ -242,7 +243,7 @@ if __name__ == '__main__':
                 tmp_speedup, tmp_eff = compute_speedup(serial if i != 0 else 0, parallel[i - 1] if i != 0 else 1, PROCS[i] if i != 0 else 1)
                 speedup.append(tmp_speedup)
                 eff.append(tmp_eff)
-                print('sp:',serial,'/', parallel[i-1] if i!=0 else serial,'=',tmp_speedup,'PRC:',PROCS[i] if PROCS[i] else 1,'eff:',tmp_eff)
+                # print('sp:',serial,'/', parallel[i-1] if i!=0 else serial,'=',tmp_speedup,'PRC:',PROCS[i] if PROCS[i] else 1,'eff:',tmp_eff)
             # speedup = [1/s for s in speedup]
 
             if toSumColumn is None:
