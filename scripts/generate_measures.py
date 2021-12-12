@@ -31,13 +31,13 @@ def get_files_in_dir(source_path: Path, with_sort=False):
     return exe_list
 
 
-def measure_exec_time(command: str):
+def measure_exec_time(command: str,is_parallel:bool):
     """Call linux 'time' to get the execution times (real time, user time, kernel time) of the executable
        Return an object TestResult containing all relevant info about the execution times
     """
     p = sp.Popen(f'\'time\' -f \";%e;%U;%S\" {command}', shell=True, stderr=sp.STDOUT, stdout=sp.PIPE)
     msg, _ = p.communicate()
-    return TestResult.convert_to_data(msg)
+    return TestResult.convert_to_data(msg,is_parallel)
 
 
 def generate_measures():
@@ -84,16 +84,16 @@ def generate_measures():
                     # command}") print(output_measures_path)
 
                     with open(Path(output_measures_path), 'w+') as fout:
-                        # prima colonna da scrivere
-                        fout.write('size;processes;read_time;merge_time;elapsed;user;sys\n')
                         if proc_num == 0:
+                            fout.write('size;processes;read_time;merge_time;elapsed;user;sys\n')
                             desc = f"Executing {exe_serial_path.name} version {version} with size 2^{in_size}..."
                         else:
+                            fout.write('size;processes;read_time;local_sort_time;merge_time;elapsed;user;sys\n')
                             desc = f"Executing {exe_mpi_path.name} version {version} with {proc_num} processes and " \
                                    f"size 2^{in_size} ... "
                         # helpful progress bar
                         for _ in tqdm(range(MSRS), desc=desc):
-                            data = measure_exec_time(command)
+                            data = measure_exec_time(command, proc_num != 0) # changes if serial or parallel according to the proc_num value
                             # writing into the file the repr of TestResult
                             fout.write(str(data))
 

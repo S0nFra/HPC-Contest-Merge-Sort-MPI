@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import math
 
 
 @dataclass
@@ -18,31 +19,44 @@ class TestResult:
     thread_num: int
     read_t: float
     compute: float
+    local_sort_time: float
 
     real_time: float
     user_time: float
     sys_time: float
 
-    def convert_to_data(msg: str):
+    def convert_to_data(msg: str,is_parallel:bool):
         msg = "{}".format(msg.decode("utf-8")).replace('\n', '').split(';')
-        if len(msg) != 7:
+        if not(len(msg) == 7 or len(msg) == 8 and is_parallel):
             raise Exception("could not convert measures to valid data")
 
-        return TestResult(
+        if(is_parallel):
+            # compute_time (time to execute mergesort) = elapsed_time - read_time
+            compute_time = round(float(msg[4]) - float(msg[2]),6) # max 6 decimal digits 
+            return TestResult(
+            size_arr=msg[0],
+            thread_num=msg[1],
+            read_t=msg[2],
+            compute=compute_time,
+            local_sort_time=msg[3],
+            real_time=msg[4],
+            user_time=msg[5],
+            sys_time=msg[6],
+            )
+        else:
+            return TestResult(
             size_arr=msg[0],
             thread_num=msg[1],
             read_t=msg[2],
             compute=msg[3],
+            local_sort_time= float('nan'),
             real_time=msg[4],
             user_time=msg[5],
             sys_time=msg[6]
-        )
-
-    def get_real_time(self):
-        return float(self.real_time)
-
-    def get_composed_time(self):
-        return round(float(self.read_t) + float(self.compute), 3)
-
+            )
+    
     def __str__(self) -> str:
-        return f"{self.size_arr};{self.thread_num};{self.read_t};{self.compute};{self.real_time};{self.user_time};{self.sys_time}\n"
+        if(math.isnan(float(self.local_sort_time))):
+            return f"{self.size_arr};{self.thread_num};{self.read_t};{self.compute};{self.real_time};{self.user_time};{self.sys_time}\n"
+        else:
+            return f"{self.size_arr};{self.thread_num};{self.read_t};{self.local_sort_time};{self.compute};{self.real_time};{self.user_time};{self.sys_time}\n"
