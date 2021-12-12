@@ -181,8 +181,8 @@ if __name__ == '__main__':
     args = [arg for arg in sys.argv[1:] if not arg.startswith("-")]
 
     # Read a file with columns name in csv files
-    output_data_info = "size;processes;read_time;merge_time;elapsed;user;sys".split(';')
-    targetColumn = "merge_time" if len(sys.argv) < 2 else args[0]
+    output_data_info = "size;processes;read_time;local_sort_time;merge_time;elapsed;user;sys".split(';')
+    targetColumn = "elapsed" if len(sys.argv) < 2 else args[0]
 
     if targetColumn not in output_data_info:
         print(targetColumn, "wrong target column")
@@ -247,15 +247,15 @@ if __name__ == '__main__':
             # Generating tables
             si = serial_index(d[targetColumn], RE_SEQ)
             table = []
-            header_table = ['Version', 'Process', 'Read time', 'Merge time', 'User', 'Sys', 'Elapsed', 'Speedup', 'Efficiency']
+            header_table = ['Version', 'Process', 'Read time', 'Local sort' , 'Merge time', 'User', 'Sys', 'Elapsed', 'Speedup', 'Efficiency']
             table.append(header_table)
             j = len(PROCS) - 1
-            row = ['Serial', 1, '%.5f' % d['read_time'][j][1], '%.5f' % d['merge_time'][j][1], '%.5f' % d['user'][j][1],
+            row = ['Serial', 1, '%.5f' % d['read_time'][j][1], '-' ,'%.5f' % d['merge_time'][j][1], '%.5f' % d['user'][j][1],
                    '%.5f' % d['sys'][j][1], '%.5f' % d['elapsed'][j][1], 1, 1]
             table.append(row)
             j = 0
-            for j in range(len(PROCS) - 1):
-                row = ['Parallel', PROCS[j + 1], '%.5f' % d['read_time'][j][1], '%.5f' % d['merge_time'][j][1],
+            for j in range(1, len(PROCS) - 1):
+                row = ['Parallel', PROCS[j], '%.5f' % d['read_time'][j][1], '%.5f' % d['local_sort_time'][j][1] ,'%.5f' % d['merge_time'][j][1],
                        '%.5f' % d['user'][j][1], '%.5f' % d['sys'][j][1], '%.5f' % d['elapsed'][j][1],
                        '%.5f' % speedup[j], '%.5f' % eff[j]]
                 table.append(row)
