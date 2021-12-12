@@ -209,11 +209,15 @@ if __name__ == '__main__':
         print(Fore.YELLOW + "Working on dir:", move_on, end='')
         print(Style.RESET_ALL)
         
-        base_output_name = f"{Path(move_on).parent.name.lower().replace('_','')}_{Path(move_on).name.replace('_','')}"
+        currentPath = Path(move_on)
+        base_output_name = f"{currentPath.parent.name.lower().replace('_','')}_{currentPath.name.replace('_','')}"
         
         print("Data extraction... ", end="")
         data = get_data(output_data_info, file_re=RE_CSV, serial_re=RE_SEQ)
         print("DONE")
+        
+        # print(data)
+        # exit()
 
         print("# Generating graphs and tables")
         # for folder in tqdm(data.keys()):
@@ -221,7 +225,7 @@ if __name__ == '__main__':
             print('>>', folder)
             dir = move_on / folder
             d = data[folder]
-
+            
             # print("### PRIMA ###\n",d[targetColumn],"\n",d[toSumColumn])            
             if toSumColumn is not None:
                 print(f"Summing \"{toSumColumn}\" to \"{targetColumn}\"")
@@ -238,6 +242,7 @@ if __name__ == '__main__':
                 tmp_speedup, tmp_eff = compute_speedup(serial if i != 0 else 0, parallel[i - 1] if i != 0 else 1, PROCS[i] if i != 0 else 1)
                 speedup.append(tmp_speedup)
                 eff.append(tmp_eff)
+                print('sp:',serial,'/', parallel[i-1] if i!=0 else serial,'=',tmp_speedup,'PRC:',PROCS[i] if PROCS[i] else 1,'eff:',tmp_eff)
             # speedup = [1/s for s in speedup]
 
             if toSumColumn is None:
@@ -245,7 +250,7 @@ if __name__ == '__main__':
             else:
                 outputFileName = '{}_{}_{}+{}.jpg'.format(base_output_name, folder, targetColumn, toSumColumn)
             plot_graph(PROCS, speedup, Path(dir / outputFileName))
-
+    
             # Generating tables
             si = serial_index(d[targetColumn], RE_SEQ)
             table = []
@@ -256,10 +261,10 @@ if __name__ == '__main__':
                    '%.5f' % d['sys'][j][1], '%.5f' % d['elapsed'][j][1], 1, 1]
             table.append(row)
             j = 0
-            for j in range(1, len(PROCS) - 1):
-                row = ['Parallel', PROCS[j], '%.5f' % d['read_time'][j][1], '%.5f' % d['local_sort_time'][j][1] ,'%.5f' % d['merge_time'][j][1],
+            for j in range(len(PROCS)-1):
+                row = ['Parallel', PROCS[j+1], '%.5f' % d['read_time'][j][1], '%.5f' % d['local_sort_time'][j][1] ,'%.5f' % d['merge_time'][j][1],
                        '%.5f' % d['user'][j][1], '%.5f' % d['sys'][j][1], '%.5f' % d['elapsed'][j][1],
-                       '%.5f' % speedup[j], '%.5f' % eff[j]]
+                       '%.5f' % speedup[j+1], '%.5f' % eff[j+1]]
                 table.append(row)
 
             if toSumColumn is None:
