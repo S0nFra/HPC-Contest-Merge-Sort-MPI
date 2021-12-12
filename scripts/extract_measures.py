@@ -200,7 +200,7 @@ if __name__ == '__main__':
         tmp = base_dir / 'measures' / f'Case_{case}'
         for folder in os.listdir(tmp):
             measure_source.append(tmp / folder)
-
+    
     for move_on in measure_source:
         # print(Fore.YELLOW + os.getcwd(),end='')
         if os.getcwd() != move_on:
@@ -208,7 +208,9 @@ if __name__ == '__main__':
             # print(' ->',move_on,end='')
         print(Fore.YELLOW + "Working on dir:", move_on, end='')
         print(Style.RESET_ALL)
-
+        
+        base_output_name = f"{Path(move_on).parent.name.lower().replace('_','')}_{Path(move_on).name.replace('_','')}"
+        
         print("Data extraction... ", end="")
         data = get_data(output_data_info, file_re=RE_CSV, serial_re=RE_SEQ)
         print("DONE")
@@ -239,9 +241,9 @@ if __name__ == '__main__':
             # speedup = [1/s for s in speedup]
 
             if toSumColumn is None:
-                outputFileName = '{}_{}.jpg'.format(folder, targetColumn)
+                outputFileName = '{}_{}_{}.jpg'.format(base_output_name, folder, targetColumn)
             else:
-                outputFileName = '{}_{}+{}.jpg'.format(folder, targetColumn, toSumColumn)
+                outputFileName = '{}_{}_{}+{}.jpg'.format(base_output_name, folder, targetColumn, toSumColumn)
             plot_graph(PROCS, speedup, Path(dir / outputFileName))
 
             # Generating tables
@@ -261,8 +263,8 @@ if __name__ == '__main__':
                 table.append(row)
 
             if toSumColumn is None:
-                outputFileName = '{}_{}_{}.csv'.format(folder, 'table', targetColumn)
+                outputFileName = 'table_{}_{}_{}.csv'.format(base_output_name, folder, targetColumn)
             else:
-                outputFileName = '{}_{}_{}+{}.csv'.format(folder, 'table', targetColumn, toSumColumn)
+                outputFileName = 'table_{}_{}_{}+{}.csv'.format(base_output_name, folder, targetColumn, toSumColumn)
 
             make_table(table, filename=dir / outputFileName, img=True, save=True, print_table=False)
