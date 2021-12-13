@@ -11,7 +11,7 @@ INPUT_FILES_PATH = Path.cwd().parent / Path('data')
 
 INPUT_SIZE_LIST = (2 ** 16, 2 ** 18, 2 ** 19, 2 ** 20)
 PROCS = (0, 2, 4, 8, 16)  # 1 not considered
-MSRS = 4  # Number of measures taken
+MSRS = 100  # Number of measures taken
 VERSIONS = (0, 1, 2, 3)
 CASES = 2  # 0 is with quicksort as local sort algorithm, 1 mergesort 
 
