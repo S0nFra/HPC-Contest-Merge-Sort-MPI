@@ -40,3 +40,47 @@ int check_int_input(const char* par){
     }
     return val;
 }
+
+void merge_rec(DATATYPE* restrict X, int n, DATATYPE* restrict tmp) {
+   int i = 0;
+   int j = n/2;
+   int ti = 0;
+
+   while (i<n/2 && j<n) {
+      if (X[i] < X[j]) {
+         tmp[ti] = X[i];
+         ti++; i++;
+      } else {
+         tmp[ti] = X[j];
+         ti++; j++;
+      }
+   }
+   while (i<n/2) { /* finish up lower half */
+      tmp[ti] = X[i];
+      ti++; i++;
+   }
+   while (j<n) { /* finish up upper half */
+      tmp[ti] = X[j];
+      ti++; j++;
+   }
+   memcpy(X, tmp, n*sizeof(DATATYPE));
+}
+
+
+void mergesort_rec(DATATYPE* restrict X, int n){
+
+   DATATYPE* restrict tmp = malloc(n * sizeof(DATATYPE));
+
+   mergesort_rec_h(X,n,tmp);
+   free(tmp);
+}
+
+// Seriale
+void mergesort_rec_h(DATATYPE* restrict X, int n, DATATYPE* restrict tmp){
+   if (n < 2) return;
+
+   mergesort_rec_h(X, n/2, tmp);
+   mergesort_rec_h(X+(n/2), n-(n/2), tmp + n/2);
+
+   merge_rec(X, n, tmp);
+}

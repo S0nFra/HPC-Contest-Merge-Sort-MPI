@@ -12,6 +12,8 @@
 #include "../include/mergeMPI.h"
 #include "../include/utils.h"
 
+int SORT_TYPE = 0;
+
 int main(int argc, char * argv[]) {
 
   int rank, n_rank;
@@ -26,16 +28,18 @@ int main(int argc, char * argv[]) {
   MPI_Comm_size(comm, &n_rank);
   MPI_Comm_rank(comm, &rank);
 
-  if (argc < 4){
+  if (argc < 5){
     if(rank == 0)
-		  fprintf(stderr,"Usage:\n\t%s [input_fileName] [inputSize] [VERSION] [testMode (default = 0)]\n",argv[0]);
+		  fprintf(stderr,"Usage:\n\t%s [input_fileName] [inputSize] [VERSION] [SORT TYPE 0,1] [testMode (default = 0)]\n",argv[0]);
 		exit(EXIT_FAILURE);
   }
 
   char* filename = argv[1];
   int size = check_int_input(argv[2]);
   int VERSION = check_int_input(argv[3]);
-  int testMode = (argc == 5) ? check_int_input(argv[4]) : 0;
+  SORT_TYPE = check_int_input(argv[4]);
+  int testMode = (argc == 6) ? check_int_input(argv[5]) : 0;
+
 
   local_size = size / n_rank;
   local_array = malloc(size * sizeof(DATATYPE)); // n_rank * local_size * sizeof(DATATYPE)
@@ -137,7 +141,12 @@ double init_local_sort(DATATYPE* local_array, int local_size, int n_rank, int ra
 
   START_T(start_time)
     //qsort(local_array, local_size, sizeof(local_array[0]), Compare);
-    quickSort(local_array,0,local_size-1); //sort the local array 
+    if(SORT_TYPE == 0){
+      quickSort(local_array,0,local_size-1); //sort the local array 
+    }else{
+      mergesort_rec(local_array,local_size);
+    }
+    
   END_T(end_time,start_time,com,sum)
 
   return sum / n_rank; 
@@ -341,4 +350,4 @@ int compare(const void* a_p, const void* b_p) {
     return 0;
   else /* a > b */
     return 1;
-} 
+}

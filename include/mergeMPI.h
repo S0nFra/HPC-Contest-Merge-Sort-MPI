@@ -16,6 +16,7 @@
 #include <mpi.h>
 
 #include "datatype.h"
+#include "utils.h"
 
 // shall be changed accordingly
 // for example: (MPI_INT, int) or (MPI_DOUBLE, double)
