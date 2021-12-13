@@ -57,6 +57,6 @@ class TestResult:
     
     def __str__(self) -> str:
         if(math.isnan(float(self.local_sort_time))):
-            return f"{self.size_arr};{self.thread_num};{self.read_t};{self.compute};{self.real_time};{self.user_time};{self.sys_time}\n"
+            return f"{self.size_arr};{self.thread_num};{self.read_t};0;{self.compute};{self.real_time};{self.user_time};{self.sys_time}\n"
         else:
             return f"{self.size_arr};{self.thread_num};{self.read_t};{self.local_sort_time};{self.compute};{self.real_time};{self.user_time};{self.sys_time}\n"
