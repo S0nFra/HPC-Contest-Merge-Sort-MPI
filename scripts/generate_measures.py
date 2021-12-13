@@ -11,9 +11,9 @@ INPUT_FILES_PATH = Path.cwd().parent / Path('data')
 
 INPUT_SIZE_LIST = (2 ** 16, 2 ** 18, 2 ** 19, 2 ** 20)
 PROCS = (0, 2, 4, 8, 16)  # 1 not considered
-MSRS = 100  # Number of measures taken
+MSRS = 4  # Number of measures taken
 VERSIONS = (0, 1, 2, 3)
-CASES = 2  # O0 and O3
+CASES = 2  # 0 is with quicksort as local sort algorithm, 1 mergesort 
 
 CASE_ONE_PATH = DST_FOLDER / Path("Case_1")
 CASE_TWO_PATH = DST_FOLDER / Path("Case_2")
@@ -48,8 +48,8 @@ def generate_measures():
     executables = get_files_in_dir(SRC_FOLDER, with_sort=True)
     inputs = get_files_in_dir(INPUT_FILES_PATH)
 
-    mpi_executables = executables[:CASES]  # first half CASES are mpi execs
-    serial_executables = executables[CASES:]  # second half CASES are serial execs
+    mpi_executable = executables[0]  # first half CASES are mpi execs
+    serial_executable = executables[1]  # second half CASES are serial execs
 
     for case in range(CASES):  # for each case
         if case == 0:
@@ -57,8 +57,8 @@ def generate_measures():
         else:
             case_path = CASE_TWO_PATH
 
-        exe_serial_path = SRC_FOLDER / Path(serial_executables[case])
-        exe_mpi_path = SRC_FOLDER / Path(mpi_executables[case])
+        exe_serial_path = SRC_FOLDER / Path(serial_executable)
+        exe_mpi_path = SRC_FOLDER / Path(mpi_executable)
 
         for version in VERSIONS:  # for each version
             version_path = case_path / Path(f"version_{version}")
@@ -78,7 +78,7 @@ def generate_measures():
                         command = f"{exe_serial_path} \'{input_file}\' {input_size}"
                     else:  # parallel
                         output_measures_path = size_out_path / Path(f"mpi_{proc_num}_{in_size}.csv")
-                        command = f"mpirun -np {proc_num} {exe_mpi_path} \'{input_file}\' {input_size} {version}"
+                        command = f"mpirun -np {proc_num} {exe_mpi_path} \'{input_file}\' {input_size} {version} {case}"
 
                     # print(f"executing version {version}, input size {input_size} and {proc_num} CE with command: {
                     # command}") print(output_measures_path)

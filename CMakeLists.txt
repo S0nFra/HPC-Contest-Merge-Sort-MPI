@@ -14,39 +14,34 @@ set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/executables) #redirect e
 
 include_directories(include)
 add_executable(merge_mpi_O0 src/mergeMPI.c src/utils.c include/datatype.h include/utils.h include/mergeMPI.h)
-add_executable(merge_mpi_O3 src/mergeMPI.c src/utils.c include/datatype.h include/utils.h include/mergeMPI.h)
 add_executable(merge_serial_O0 src/mergesort_serial.c src/utils.c include/datatype.h include/utils.h include/mergesort_serial.h)
-add_executable(merge_serial_O3 src/mergesort_serial.c src/utils.c include/datatype.h include/utils.h include/mergesort_serial.h)
 
 find_package(MPI REQUIRED)
 if(MPI_C_FOUND)
     message(STATUS "Run: ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} ${MPIEXEC_MAX_NUMPROCS} ${MPIEXEC_PREFLAGS} EXECUTABLE ${MPIEXEC_POSTFLAGS} ARGS")
     target_link_libraries(merge_mpi_O0 PUBLIC MPI::MPI_C)
-	target_link_libraries(merge_mpi_O3 PUBLIC MPI::MPI_C)
 endif()
 
 target_compile_options(merge_mpi_O0 PRIVATE -O0)
-target_compile_options(merge_mpi_O3 PRIVATE -O3)
 target_compile_options(merge_serial_O0 PRIVATE -O0)
-target_compile_options(merge_serial_O3 PRIVATE -O3)
 #-----------------------------------------------------------------------------
 
 #------------------------------- DOCUMENTATION -------------------------------
-find_package(Doxygen REQUIRED dot)
+# find_package(Doxygen REQUIRED dot)
 
-if(DOXYGEN_FOUND)
-	set(DOXYGEN_GENERATE_XML YES)
-	doxygen_add_docs(
-	  docs 
-		${CMAKE_SOURCE_DIR}/include/datatype.h 
-		${CMAKE_SOURCE_DIR}/include/mergeMPI.h
-		${CMAKE_SOURCE_DIR}/include/mergesort_serial.h
-		${CMAKE_SOURCE_DIR}/include/utils.h
-		${CMAKE_SOURCE_DIR}/src/mergeMPI.c
-		${CMAKE_SOURCE_DIR}/src/mergesort_serial.c
-		${CMAKE_SOURCE_DIR}/src/utils.c
-		)
-endif()
+# if(DOXYGEN_FOUND)
+# 	set(DOXYGEN_GENERATE_XML YES)
+# 	doxygen_add_docs(
+# 	  docs 
+# 		${CMAKE_SOURCE_DIR}/include/datatype.h 
+# 		${CMAKE_SOURCE_DIR}/include/mergeMPI.h
+# 		${CMAKE_SOURCE_DIR}/include/mergesort_serial.h
+# 		${CMAKE_SOURCE_DIR}/include/utils.h
+# 		${CMAKE_SOURCE_DIR}/src/mergeMPI.c
+# 		${CMAKE_SOURCE_DIR}/src/mergesort_serial.c
+# 		${CMAKE_SOURCE_DIR}/src/utils.c
+# 		)
+# endif()
 #-----------------------------------------------------------------------------
 
 #----------------------------- MEASURE GENERATION ----------------------------
@@ -73,7 +68,7 @@ add_custom_target(
 #----------------------------- MEASURE EXTRACTION ----------------------------
 add_custom_target(
     extract_measures
-    COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/scripts/extract_measures.py && python3 ${CMAKE_CURRENT_SOURCE_DIR}/scripts/extract_measures.py elapsed
+    COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/scripts/extract_measures.py
     COMMENT "Generating measures [python ${CMAKE_CURRENT_SOURCE_DIR}/scripts/extract_measures.py]"
     DEPENDS	
 		install_requirems
