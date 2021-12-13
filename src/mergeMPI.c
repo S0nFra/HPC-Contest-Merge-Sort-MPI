@@ -51,13 +51,18 @@ int main(int argc, char * argv[]) {
   if (testMode && rank == 0)
     printf("init local sort time taken: %.3lf\n", local_time_sort);
 
-  if(testMode)
+  if(testMode){
+    if (rank == 0)
+      printf("\n### PRIMA ###\n");
     Print_global_list(local_array, local_size, rank, n_rank, comm);
+  }
 
   Merge_sort(local_array, local_size, rank, n_rank, comm);
 
-  if(testMode && rank == 0)
+  if(testMode && rank == 0){
+    printf("\n### DOPO ###\n");
     Print_list(local_array, size);
+  }
   
   // OUTPUT
   if (rank == 0)
@@ -96,13 +101,13 @@ double init(DATATYPE *local_array, int local_size, int n_rank, int rank, char* f
   if (version == 0 || version == 1){ // contiguous requests
     MPI_Offset offset = rank * local_size * sizeof(DATATYPE);
     MPI_File_open(com, filename, MPI_MODE_RDONLY, MPI_INFO_NULL, &fh);
-    for (int i=0; i<n_rank; i++){
+    // for (int i=0; i<n_rank; i++){
       MPI_File_seek(fh, offset, MPI_SEEK_SET);
       if (version == 0) // many independent, contiguous requests
         MPI_File_read(fh, local_array, local_size, MPITYPE, &status);
       else // version 1 many collective, contiguous requests
         MPI_File_read_all(fh, local_array, local_size, MPITYPE, &status);
-    }
+    // }
     MPI_File_close(&fh);
 
   } else if (version == 2 || version == 3){ // noncontiguous request
@@ -153,7 +158,8 @@ void Print_global_list(DATATYPE* local_array, int local_n, int rank, int n_rank,
   if (rank == 0) {
     global_A = malloc(n_rank * local_n * sizeof(DATATYPE));
     MPI_Gather(local_array, local_n, MPITYPE, global_A, local_n, MPITYPE, 0, comm);
-    Print_list(global_A, n_rank * local_n);
+    Print_list_node(global_A, n_rank * local_n, local_n);
+    // Print_list(global_A, n_rank * local_n);
     free(global_A);
   } else {
     MPI_Gather(local_array, local_n, MPITYPE, global_A, local_n, MPITYPE, 0, comm);
@@ -174,7 +180,17 @@ void Print_list(DATATYPE local_array[], int n) {
   for (i = 0; i < n; i++)
     printf("%.2lf ", (double)local_array[i]);
   printf("\n");
-} 
+}
+
+void Print_list_node(DATATYPE local_array[], int n, int local_size) {
+  int i, j = 0;
+  for (i = 0; i < n; i++){
+    if (i%local_size == 0)
+      printf("\n#Node %d\n",j++);    
+    printf("%.2lf ", (double)local_array[i]);
+  }
+  printf("\n");
+}
 
 /**
  * @brief Parallel merge sort: starts with a distributed

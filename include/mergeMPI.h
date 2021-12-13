@@ -31,6 +31,7 @@ int compare(const void* a_p, const void* b_p);
 double init(DATATYPE* local_array, int local_size, int n_rank, int rank, char* filename, int version, MPI_Comm com);
 double init_local_sort(DATATYPE* local_array, int local_size, int n_rank, int rank, MPI_Comm com); 
 void Print_list(DATATYPE* local_array, int n);
+void Print_list_node(DATATYPE local_array[], int n, int local_size);
 void Merge(DATATYPE* local_array, DATATYPE* B, DATATYPE* C, int size);
 
 /* Functions involving communication */
