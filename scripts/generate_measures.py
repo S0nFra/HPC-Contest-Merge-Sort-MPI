@@ -84,11 +84,10 @@ def generate_measures():
                     # command}") print(output_measures_path)
 
                     with open(Path(output_measures_path), 'w+') as fout:
+                        fout.write('size;processes;read_time;local_sort_time;merge_time;elapsed;user;sys\n')
                         if proc_num == 0:
-                            fout.write('size;processes;read_time;merge_time;elapsed;user;sys\n')
                             desc = f"Executing {exe_serial_path.name} version {version} with size 2^{in_size}..."
                         else:
-                            fout.write('size;processes;read_time;local_sort_time;merge_time;elapsed;user;sys\n')
                             desc = f"Executing {exe_mpi_path.name} version {version} with {proc_num} processes and " \
                                    f"size 2^{in_size} ... "
                         # helpful progress bar
