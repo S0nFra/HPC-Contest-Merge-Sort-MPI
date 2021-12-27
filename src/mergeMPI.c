@@ -140,11 +140,12 @@ double init_local_sort(DATATYPE* local_array, int local_size, int n_rank, int ra
   double start_time,end_time,sum;
 
   START_T(start_time)
-    //qsort(local_array, local_size, sizeof(local_array[0]), Compare);
+    //sort the local array 
     if(SORT_TYPE == 0){
-      quickSort(local_array,0,local_size-1); //sort the local array 
-    }else{
       mergesort_rec(local_array,local_size);
+    }else{
+      //qsort(local_array, local_size, sizeof(local_array[0]), Compare);
+      quickSort(local_array,0,local_size-1); 
     }
     
   END_T(end_time,start_time,com,sum)
