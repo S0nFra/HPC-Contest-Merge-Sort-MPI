@@ -70,7 +70,7 @@ make extract_measures
 
 is required to generate the speedup plots and the summary charts.
 
-You can find our measures in */our_measure* folder.
+You can find our measures in */our_measures* folder.
 
 ### Optional 
 
